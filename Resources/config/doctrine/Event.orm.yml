@@ -1,0 +1,29 @@
+Ob\LogBundle\Entity\Event:
+  type: entity
+  table: ob_log_entries
+  fields:
+    id:
+      type: integer
+      id: true
+      generator:
+        strategy: AUTO
+    objectClass:
+      type: string
+      length: 255
+    objectId:
+      type: integer
+    objectCopy:
+      type: object
+      nullable: true
+    type:
+      type: string
+      length: 25
+    env:
+      type: string
+      length: 10
+    createdAt:
+      type: datetime
+    data:
+      type: array
+      nullable: true
+  lifecycleCallbacks: {  }

@@ -1,0 +1,8 @@
+parameters:
+#    ob_log.example.class: Ob\LogBundle\Example
+
+services:
+  ob_logger:
+    class: Ob\LogBundle\Logging\Logger
+    arguments: [@doctrine.orm.entity_manager, %kernel.environment%]
+    scope: request
