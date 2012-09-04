@@ -1,0 +1,22 @@
+{
+    "name": "ob/log-bundle",
+    "type": "symfony-bundle",
+    "description": "Symfony2 Bundle to log events (clicks, prints, visits, crud actions, etc.) accross your app",
+    "keywords": ["symfony2", "log", "logging", "clicks", "visits", "events", "audit", "ob", "marcaube"],
+    "homepage": "https://github.com/marcaube/ObLogBundle",
+    "authors": [
+        {
+            "name": "Marc Aubé"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "symfony/symfony": "2.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Ob\\LogBundle": ""
+        }
+    },
+    "target-dir": "Ob/LogBundle"
+}
