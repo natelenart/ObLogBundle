@@ -25,11 +25,6 @@ class Event
     private $objectId;
 
     /**
-     * @var object $objectCopy
-     */
-    private $objectCopy;
-
-    /**
      * @var string $type
      */
     private $type;
@@ -106,30 +101,6 @@ class Event
     public function getObjectId()
     {
         return $this->objectId;
-    }
-
-    /**
-     * Set objectCopy
-     *
-     * @param object $objectCopy
-     *
-     * @return Event
-     */
-    public function setObjectCopy($objectCopy)
-    {
-        $this->objectCopy = $objectCopy;
-
-        return $this;
-    }
-
-    /**
-     * Get objectCopy
-     *
-     * @return object 
-     */
-    public function getObjectCopy()
-    {
-        return $this->objectCopy;
     }
 
     /**
@@ -226,5 +197,17 @@ class Event
     public function getData()
     {
         return $this->data;
+    }
+
+    /**
+     * Get the entity's class without the namespace part
+     *
+     * @return mixed
+     */
+    public function getShortObjectClass()
+    {
+        $parts = explode('\\', $this->objectClass);
+
+        return $parts[sizeof($parts) - 1];
     }
 }

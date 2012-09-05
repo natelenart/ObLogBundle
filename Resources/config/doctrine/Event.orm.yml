@@ -12,8 +12,6 @@ Ob\LogBundle\Entity\Event:
       length: 255
     objectId:
       type: integer
-    objectCopy:
-      type: object
       nullable: true
     type:
       type: string

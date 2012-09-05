@@ -35,7 +35,7 @@ class Logger
      * @param string     $type
      * @param null|array $data
      */
-    public function logEvent($entity, $type = 'visit', $data = null, $copyEntity = false)
+    public function logEvent(&$entity, $type = 'visit', $data = null)
     {
         // Get the id value
         $meta = $this->em->getClassMetadata(get_class($entity));
@@ -48,13 +48,8 @@ class Logger
             ->setObjectId($objectId)
             ->setType($type)
             ->setEnv($this->env)
-            ->setCreatedAt(new \DateTime())
+            ->setCreatedAt(new \DateTime()) // Do this in the entity's lifeCycle Callback
             ->setData($data);
-
-        // Keep a copy, used for versioning, rollbacks, etc.
-        if ($copyEntity) {
-            $event->setObjectCopy($entity);
-        }
 
         $this->em->persist($event);
         $this->em->flush();

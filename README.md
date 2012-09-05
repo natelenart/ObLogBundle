@@ -8,9 +8,6 @@ The power of this simple bundles lies in the fact that an event can be linked to
 meta-data about the event or entity: referer, ip address, browser, etc. You could use this bundle to create an audit
 trail of the changes in your backend, using the extra data to log the user and the type for the CRUD action performed.
 
-You can also use the lifeCycle callbacks of your entities to log events and keep a trail of who did what and when in your
-system.
-
 ## Installation
 
 Add the following lines to your `deps` file:
@@ -68,9 +65,140 @@ Here's how I would log the visit to the detail page of an article:
     ...
 ```
 
-If you want, you can even keep a copy of the object for backend versioning or other applications like that:
+Here is an exmaple of a Listener to log CRUD action in a backend:
 
 ``` php
-    // The last parameter tells the service to keep a copy of the entity, defaults to false for obvious reasons
-    $this->get('ob_logger')->logEvent($article, 'delete', $data, true);
+// Ob/AdminBundle/Listener/ActionListener.php
+namespace Ob\AdminBundle\Listener;
+
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Doctrine\ORM\Event\LifecycleEventArgs;
+
+use Ob\LogBundle\Logging\Logger;
+use Ob\LogBundle\Entity\Event;
+
+class ActionListener
+{
+    /**
+     * Create action
+     */
+    const ACTION_CREATE = 'create';
+
+    /**
+     * Update action
+     */
+    const ACTION_UPDATE = 'update';
+
+    /**
+     * Remove action
+     */
+    const ACTION_REMOVE = 'remove';
+
+    /**
+     * DIC
+     *
+     * @var \Symfony\Component\DependencyInjection\ContainerInterface
+     */
+    protected $container;
+
+
+    /**
+     * Init
+     *
+     * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+     */
+    public function __construct(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
+
+
+    /**
+     * Check for created entities
+     *
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $args
+     */
+    public function postPersist(LifecycleEventArgs $args)
+    {
+        $this->logEvent($args, self::ACTION_CREATE);
+    }
+
+
+    /**
+     * Check for updated entities
+     *
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $args
+     */
+    public function postUpdate(LifecycleEventArgs $args)
+    {
+        $this->logEvent($args, self::ACTION_UPDATE);
+    }
+
+
+    /**
+     * Check for removed entities
+     *
+     * @param \Doctrine\ORM\Event\LifecycleEventArgs $args
+     */
+    public function postRemove(LifecycleEventArgs $args)
+    {
+        $this->logEvent($args, self::ACTION_REMOVE);
+    }
+
+
+    /**
+     * Call the ObLogBundle Listener
+     *
+     * @param $args
+     * @param $action
+     */
+    private function logEvent($args, $action)
+    {
+        if ($this->isLogged()) {
+            $entity = $args->getEntity();
+
+            // Don't log changes on Ob\LogBundle\Entity\Events
+            if (!($entity instanceof Event)) {
+                $data = array(
+                    'user' => $this->container->get('security.context')->getToken()->getUser(),
+                    'ip'    =>  $this->container->get('request')->getClientIp(),
+                );
+                $this->container->get('ob_logger')->logEvent($entity, $action, $data);
+            }
+        }
+    }
+
+
+    /**
+     * Implement the checks you want, here we only check that there is /admin/ in the URI.
+     *
+     * @return bool
+     */
+    private function isLogged()
+    {
+        $uri = $this->container->get('request')->getUri();
+
+        // If we are in the CMS
+        if (preg_match('/\/admin\//', $uri)) {
+            return true;
+        }
+
+        return false;
+    }
+}
+```
+
+And here is the service.yml that goes with it :
+
+``` yaml
+#  Ob/AdminBundle/Resources/config/service.yml
+
+services:
+    ob.admin_logger:
+        class: Ob\AdminBundle\Listener\ActionListener
+        arguments: [@service_container]
+        tags:
+            - { name: doctrine.event_listener, event: postPersist }
+            - { name: doctrine.event_listener, event: postUpdate }
+            - { name: doctrine.event_listener, event: postRemove }
 ```
