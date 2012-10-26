@@ -4,5 +4,8 @@ parameters:
 services:
   ob_logger:
     class: Ob\LogBundle\Logging\Logger
-    arguments: [@doctrine.orm.entity_manager, %kernel.environment%]
+    arguments: 
+      - @doctrine.orm.entity_manager
+      - %kernel.environment%
+      - %ob_log.event.class%
     scope: request

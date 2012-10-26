@@ -19,10 +19,21 @@ class ObLogExtension extends Extension
      */
     public function load(array $configs, ContainerBuilder $container)
     {
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('services.yml');
+
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.yml');
+        $container->setParameter('ob_log.event.class', $config['event_class']);
+    }
+
+    /**
+     * Specify the short name to be used in a config file
+     *
+     * @return string
+     */
+    public function getAlias() {
+      return 'ob_log';
     }
 }

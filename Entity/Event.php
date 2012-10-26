@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * Ob\LogBundle\Entity\Event
  */
-class Event
+class Event implements EventInterface
 {
     /**
      * @var integer $id

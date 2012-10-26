@@ -1,0 +1,2 @@
+ob_log:
+  event_class: Ob\LogBundle\Entity\Event
