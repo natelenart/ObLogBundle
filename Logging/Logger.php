@@ -5,7 +5,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
 
-use Ob\LogBundle\Entity\Event;
+use Ob\LogBundle\Entity;
 
 /**
  * This class is used as a service to log clicks, prints, events, etc. and display meaningful statistics about them.
@@ -57,20 +57,21 @@ class Logger
 
         // Ensure event class implements EventInterface
         $event_class = $this->event_class;
-        if ( ! $event_class instanceof EventInterface) {
+        $event = new $event_class;
+        if ( ! $event instanceof Entity\EventInterface) {
           throw new InvalidArgumentException( // see the "use" statement for this at the top of the file
             sprintf('Event class "%s" must implement Ob\LogBundle\Entity\EventInterface', $event_class)
           );
         }
 
         // Create a new event (click/visit/print/whatever)
-        $event = new $event_class;
         $event->setObjectClass(get_class($entity))
             ->setObjectId($objectId)
             ->setType($type)
             ->setEnv($this->env)
             ->setData($data);
 
+        // Save event in database
         $this->em->persist($event);
         $this->em->flush();
     }
