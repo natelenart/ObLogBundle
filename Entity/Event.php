@@ -210,4 +210,12 @@ class Event implements EventInterface
 
         return $parts[sizeof($parts) - 1];
     }
+
+    /**
+     * Set timestamp automatically on create
+     */
+    public function setTimestampOnCreate()
+    {
+        $this->setCreatedAt(new \DateTime);
+    }
 }

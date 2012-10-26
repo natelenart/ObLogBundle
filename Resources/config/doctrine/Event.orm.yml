@@ -24,4 +24,5 @@ Ob\LogBundle\Entity\Event:
     data:
       type: array
       nullable: true
-  lifecycleCallbacks: {  }
+  lifecycleCallbacks:
+    prePersist: [ setTimestampOnCreate ]
