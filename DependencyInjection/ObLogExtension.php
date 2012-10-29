@@ -25,7 +25,12 @@ class ObLogExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->setParameter('ob_log.event.class', $config['event_class']);
+        if (isset($config['event_class'])) {
+          $container->setParameter('ob_log.event.class', $config['event_class']);
+        }
+        if (isset($config['event_populator_class'])) {
+          $container->setParameter('ob_log.event.populator.class', $config['event_populator_class']);
+        }
     }
 
     /**

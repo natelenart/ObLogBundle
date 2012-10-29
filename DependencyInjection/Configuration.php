@@ -23,6 +23,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
           ->children()
             ->scalarNode('event_class')->cannotBeEmpty()->end()
+            ->scalarNode('event_populator_class')->cannotBeEmpty()->end()
           ->end()
           ;
 

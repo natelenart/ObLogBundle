@@ -1,11 +1,19 @@
 parameters:
-#    ob_log.example.class: Ob\LogBundle\Example
+  # Default event entity class to instantiate
+  ob_log.event.class: Ob\LogBundle\Entity\Event
+  # Default event populator class to turn into a service
+  ob_log.event.populator.class: Ob\LogBundle\Populator\EventPopulator
 
 services:
+  # Event populator service using dependency-injected class name
+  ob_log.event_populator:
+    class: %ob_log.event.populator.class%
+  # Logger service
   ob_logger:
     class: Ob\LogBundle\Logging\Logger
     arguments: 
       - @doctrine.orm.entity_manager
       - %kernel.environment%
-      - %ob_log.event.class%
+      - %ob_log.event.class%     # Event class (string) as param
+      - @ob_log.event_populator  # Event populator service (instantiated)
     scope: request

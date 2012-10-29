@@ -6,6 +6,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Doctrine\ORM\EntityManager;
 
 use Ob\LogBundle\Entity;
+use Ob\LogBundle\Populator;
 
 /**
  * This class is used as a service to log clicks, prints, events, etc. and display meaningful statistics about them.
@@ -28,17 +29,24 @@ class Logger
     protected $event_class;
 
     /**
+     * @var EventPopulator $eventPopulator
+     */
+    protected $eventPopulator;
+
+    /**
      * Init the the entity manager and the env
      *
-     * @param EntityManager $em
-     * @param string        $env
-     * @param string        $event_class
+     * @param EntityManager  $em
+     * @param string         $env
+     * @param string         $event_class
+     * @param EventPopulator $eventPopulator
      */
-    public function __construct(EntityManager $em, $env, $event_class)
+    public function __construct(EntityManager $em, $env, $event_class, $eventPopulator)
     {
         $this->em = $em;
         $this->env = $env;
         $this->event_class = $event_class;
+        $this->eventPopulator = $eventPopulator;
     }
 
     /**
@@ -64,6 +72,9 @@ class Logger
             ->setEnv($this->env)
             ->setData($data)
             ;
+
+        // Send even to populator to populate any other fields
+        $this->eventPopulator->populate($event);
 
         // Save the event in the database
         $this->save($event);
