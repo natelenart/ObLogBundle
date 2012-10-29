@@ -10,6 +10,8 @@ trail of the changes in your backend, using the extra data to log the user and t
 
 ## Installation
 
+### Symfony 2.0
+
 Add the following lines to your `deps` file:
 
     [ObLogBundle]
@@ -19,21 +21,34 @@ Add the following lines to your `deps` file:
 Now, run the vendors script to download the bundle:
 
 ``` bash
-    $ php bin/vendors install
+$ php bin/vendors install
 ```
 
 Then configure the Autoloader
 
 ``` php
-    <?php
-    ...
-    'Ob' => __DIR__.'/../vendor/bundles',
+<?php
+...
+'Ob' => __DIR__.'/../vendor/bundles',
 ```
+
+### Symfony 2.1
+
+Add the following line to your composer.json file:
+
+    "ob/log-bundle": "dev-master"
+
+Update your dependencies:
+
+``` bash
+$ composer.phar update
+```
+
+### Finish Installation
 
 Register the bundle in your `app/AppKernel.php`:
 
 ``` php
-    <?php
     ...
     public function registerBundles()
     {
@@ -48,24 +63,25 @@ Register the bundle in your `app/AppKernel.php`:
 And finally, update your database:
 
 ``` bash
-    $ php app/console doctrine:schema:update --force
+$ php app/console doctrine:schema:update --force
 ```
 
 ## Usage
-Here's how I would log the visit to the detail page of an article:
+
+### Example 1: Log a visit and ip from an article detail page:
 
 ```php
-    $article = $em->getRepository('ObPagesBundle:Article')->findOneBySlug($slug);
+$article = $em->getRepository('ObPagesBundle:Article')->findOneBySlug($slug);
 
-    ...
+...
 
-    $data = array("ip" => $this->get('request')->getClientIp());
-    $this->get('ob_logger')->logEvent($article, 'visit', $data);
+$data = array("ip" => $this->get('request')->getClientIp());
+$this->get('ob_logger')->logEvent($article, 'visit', $data);
 
-    ...
+...
 ```
 
-Here is an exmaple of a Listener to log CRUD action in a backend:
+### Example 2: Create a Listener to log CRUD action in a backend:
 
 ``` php
 // Ob/AdminBundle/Listener/ActionListener.php
@@ -201,4 +217,82 @@ services:
             - { name: doctrine.event_listener, event: postPersist }
             - { name: doctrine.event_listener, event: postUpdate }
             - { name: doctrine.event_listener, event: postRemove }
+```
+
+### Example 3: Creating a custom Event class that stores the username responsible
+
+1. Create new event class
+1. Create new populator class
+1. Register populator service and event class
+
+#### Create the event class (leaving out ORM details)
+
+``` bash
+$ php app/console doctrine:generate:entity --entity=AcmeBlogBundle:LoggableEvent
+```
+
+``` php
+// src/Acme/BlogBundle/Entity/Event.php
+
+namespace Acme\BlogBundle\Entity\Event;
+
+use Ob\LogBundle\Entity as Ob;
+
+class LoggableEvent extends Ob\Event implements Ob\EventInterface
+{
+    private $username;
+
+    public function setUsername($username)
+    {
+        $this->username = $username;
+        return $this;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+}
+
+```
+
+#### Create the populator class
+``` php
+// src/Acme/BlogBundle/Populator/LoggableEventPopulator.php
+
+namespace Acme\BlogBundle\Populator;
+
+use Symfony\Component\Security\Core\SecurityContextInterface;
+
+class LoggableEventPopulator
+{
+    private $username;
+
+    public function __construct(SecurityContextInterface $context)
+    {
+        $this->username = $context->getToken()->getUser()->getUsername();
+    }
+
+    public function populate(&$event)
+    {
+        $event->setUsername($this->username);
+        return $event;
+    }
+}
+```
+
+#### Register populator service and event class
+
+``` yaml
+# app/config/config.yml
+...
+ob_log:
+  event_class: Acme\BlogBundle\Entity\Event\LoggableEvent
+  event_populator_class: Acme\BlogBundle\Populator\LoggableEventPopulator
+
+services:
+  ob_log.event_populator:
+    class: %ob_log.event.populator.class%
+    arguments:
+      - @security.context
 ```
